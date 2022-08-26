@@ -19,7 +19,7 @@ int main(){
 		for(int i=0;i<50000;i++){
 			lf a, exp_a; cin >> a >> exp_a;
 			ans += abs(a-exp_a)/exp_a;
-			sq += (a-exp_a)*(a-exp_a);
+			sq += 0.5L*(a-exp_a)*(a-exp_a);
 		}
 		cout << ans/50000.0L << "\n";
 		cout << sq/50000.0L << "\n";

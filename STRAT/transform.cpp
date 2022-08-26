@@ -16,14 +16,13 @@ int main(){
 	ios::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 	cout.precision(6); cout << fixed;
 	int n = 3;
-	int num = 150000+50000;
+	int num = 768594;
 	while(num--){
 		for(int i=0;i<n;i++){
 			for(int j=0;j<n;j++) cin >> a[i][j];
 		}
 		for(int i=0;i<n;i++) cin >> strat[i];
 		for(int i=0;i<n;i++) cin >> trash;
-		if(num>=50000) continue;
 		for(int i=0;i<n;i++){
 			for(int j=0;j<n;j++) cout << a[i][j] << " \n"[i==n-1&&j==n-1];
 		}

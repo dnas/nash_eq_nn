@@ -210,46 +210,41 @@ struct NeuralNetwork{
 
 NeuralNetwork NN;
 vector<lf> rps = {0.5,0,1,1,0.5,0,0,1,0.5};
+vector<int> sz(6);
+vector<vector<int>> layers(6);
+vector<vector<lf>> in_train, y_train, in_test, y_test;
+int num_train = 768594-50000, num_test = 50000;
 
 void print_vector(vector<lf> prnt){
 	for(lf xxx:prnt) cout << xxx << " ";
 	cout << "\n";
 }
 
-void learn_data(){
-	freopen("train_strat.txt", "r", stdin);
-	freopen("nn.txt", "w", stdout);
+void learn_data(int ind){
 	NN.init_rand();
-	for(int i=0;i<150000;i++){
+	int batch_size = 1;
+	for(int i=0;i<num_train/batch_size;i++){
 		vector<vector<lf>> in, y;
-		for(int j=0;j<1;j++){
-			vector<lf> in_tmp(9);
-			vector<lf> y_tmp(3);
-			for(int k=0;k<9;k++) cin >> in_tmp[k];
-			for(int k=0;k<3;k++){
-				cin >> y_tmp[k];
-			}
-			in.push_back(in_tmp);
-			y.push_back(y_tmp);
+		for(int j=0;j<batch_size;j++){
+			in.push_back(in_train[batch_size*i+j]);
+			y.push_back(y_train[batch_size*i+j]);
 		}
 		NN.batch_learn(in, y, 0.03L);
 	}
-	NN.print_info();
-	//cout << valid << "\n";
+	//NN.print_info();
 }
 
 void learn_debug(){
-	freopen("nn.txt", "w", stdout);
+	freopen("nn_ev.txt", "w", stdout);
 	NN.init_rand();
 	int batch_size = 1;
-	for(int i=0;i<50000/batch_size;i++){
+	for(int i=0;i<1000000/batch_size;i++){
 		vector<vector<lf>> in, y;
 		for(int j=0;j<batch_size;j++){
-			vector<lf> in_tmp(2);
-			vector<lf> y_tmp(2);
-			for(int k=0;k<2;k++) in_tmp[k] = runif(rng);
-			y_tmp[0] = (in_tmp[0]+in_tmp[1])/2.0L;
-			y_tmp[1] = 1-y_tmp[0];
+			vector<lf> in_tmp(1);
+			vector<lf> y_tmp(1);
+			for(int k=0;k<1;k++) in_tmp[k] = runif(rng);
+			y_tmp[0] = in_tmp[0]*in_tmp[0];
 			in.push_back(in_tmp);
 			y.push_back(y_tmp);
 		}
@@ -258,34 +253,53 @@ void learn_debug(){
 	NN.print_info(); 
 }
 
-void learn_file(){
-	freopen("nn.txt", "r", stdin);
-	NN.init_file();
-	lf ans1 = 0.0L,ans2=0.0L;
-	for(int i=0;i<50000;i++){
-		vector<lf> in(9);
-		vector<lf> y(3);
-		for(int j=0;j<9;j++) cin >> in[j];
-		for(int j=0;j<3;j++) cin >> y[j];
-		vector<lf> x = NN.predict(in);
-		lf a1 = 20.0L*runif(rng), a2 = 20.0L*runif(rng), a3 = 20.0L*runif(rng);
-		lf sa = exp(a1)+exp(a2)+exp(a3);
-		vector<lf> z = {softmax(a1,sa), softmax(a2,sa), softmax(a3,sa)};
-		for(int j=0;j<3;j++){
-			ans1+=0.5L*(y[j]-x[j])*(y[j]-x[j]);
-			ans2+=0.5L*(y[j]-z[j])*(y[j]-z[j]);
-		}
+void test(int ind){
+	for(int i=0;i<num_test;i++){
+		vector<lf> in = in_test[i];
+		vector<lf> exp_ans = y_test[i];
+		vector<lf> ans = NN.predict(in);
+		lf s = 0.0L;
+		for(int j=0;j<3;j++) s+=0.5L*(ans[j]-exp_ans[j])*(ans[j]-exp_ans[j]);
+		cout << s << "\n";
 	}
-	cout << ans1/50000.0L << "\n";
-	cout << ans2/50000.0L << "\n";
-	print_vector(NN.predict({0.960000, 0.930000, 0.880000, 0.920000, 0.990000, 0.660000, 0.290000, 0.260000, 0.490000}));
+	cout << "-----------------------------------\n";
+	print_vector(NN.predict(rps));
+}
+
+void custom_learn(){
+	freopen("train.txt", "r", stdin);
+	for(int i=0;i<6;i++){
+		int tmp; cin >> tmp;
+		layers[i].resize(tmp);
+		for(int j=0;j<tmp;j++) cin >> layers[i][j];
+	}
+	in_train.resize(num_train);
+	y_train.resize(num_train);
+	for(int i=0;i<num_train;i++){
+		in_train[i].resize(9);
+		y_train[i].resize(3);
+		for(int j=0;j<9;j++) cin >> in_train[i][j];
+		for(int j=0;j<3;j++) cin >> y_train[i][j];
+	}
+	in_test.resize(num_test);
+	y_test.resize(num_test);
+	for(int i=0;i<num_test;i++){
+		in_test[i].resize(9);
+		y_test[i].resize(3);
+		for(int j=0;j<9;j++) cin >> in_test[i][j];
+		for(int j=0;j<3;j++) cin >> y_test[i][j];
+	}
+	for(int i=0;i<6;i++){
+		if(i!=3) continue; 
+		NN = NeuralNetwork(layers[i]);
+		learn_data(i);
+		test(i);
+	}
 }
 
 int main(){	
 	ios::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 	cout.precision(20); cout << fixed;
-	vector<int> layers = {9,50,50,50,3};
-	NN = NeuralNetwork(layers);
-	learn_file();
+	custom_learn();
 	return 0;
 }

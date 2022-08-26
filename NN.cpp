@@ -272,8 +272,16 @@ void learn_file(){
 int main(){	
 	ios::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 	cout.precision(20); cout << fixed;
-	vector<int> layers = {9,10,10,3};
+	vector<int> layers = {1,2};
 	NN = NeuralNetwork(layers);
-	learn_file();
+	NN.init_rand();
+	for(int i=0;i<5000000;i++){
+		vector<lf> in(1);
+		in[0] = runif(rng);
+		vector<lf> y = {in[0], 1.0L-in[0]};
+		NN.batch_learn({in}, {y}, 0.03L);
+	}
+	cout << NN.weight[0][0][0] << " " << NN.bias[1][0] << "\n";
+	cout << NN.weight[0][1][0] << " " << NN.bias[1][1] << "\n";
 	return 0;
 }
